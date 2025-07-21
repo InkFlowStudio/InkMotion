@@ -624,6 +624,40 @@
             background-size: 1000px 100%;
         }
 
+        /* Style previews */
+        .style-previews {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .style-preview {
+            width: calc(33.33% - 10px);
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .style-preview:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+        }
+        
+        .style-preview.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+        }
+        
+        .style-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         /* Responsive Design */
         @media (max-width: 900px) {
             .main-content {
@@ -636,6 +670,14 @@
             
             .logo {
                 font-size: 22px;
+            }
+            
+            .style-previews {
+                gap: 8px;
+            }
+            
+            .style-preview {
+                width: calc(50% - 8px);
             }
         }
 
@@ -656,6 +698,10 @@
 
             .app-container, .preview-card {
                 padding: 20px;
+            }
+            
+            .style-preview {
+                width: 100%;
             }
         }
     </style>
@@ -722,6 +768,27 @@
                         <option value="watercolor">Watercolor</option>
                         <option value="cyberpunk">Cyberpunk</option>
                     </select>
+                    
+                    <div class="style-previews">
+                        <div class="style-preview" data-value="realistic">
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2670" alt="Realistic">
+                        </div>
+                        <div class="style-preview" data-value="anime">
+                            <img src="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2536" alt="Anime">
+                        </div>
+                        <div class="style-preview" data-value="cartoon">
+                            <img src="https://images.unsplash.com/photo-1634149923263-0a1e3c5b7f5a?q=80&w=2670" alt="Cartoon">
+                        </div>
+                        <div class="style-preview active" data-value="cinematic">
+                            <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525" alt="Cinematic">
+                        </div>
+                        <div class="style-preview" data-value="watercolor">
+                            <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=2545" alt="Watercolor">
+                        </div>
+                        <div class="style-preview" data-value="cyberpunk">
+                            <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=2670" alt="Cyberpunk">
+                        </div>
+                    </div>
                 </div>
                 
                 <button class="generate-btn" id="generateBtn">
@@ -829,6 +896,7 @@
         const videoPlayer = document.getElementById('videoPlayer');
         const playOverlay = document.getElementById('playOverlay');
         const playIcon = document.getElementById('playIcon');
+        const stylePreviews = document.querySelectorAll('.style-preview');
 
         // Sample videos for each style
         const sampleVideos = {
@@ -839,6 +907,48 @@
             watercolor: "https://assets.codepen.io/3364143/sample.mp4",
             cyberpunk: "https://assets.codepen.io/3364143/sample.mp4"
         };
+
+        // Style previews selection
+        stylePreviews.forEach(preview => {
+            preview.addEventListener('click', () => {
+                // Remove active class from all previews
+                stylePreviews.forEach(p => p.classList.remove('active'));
+                
+                // Add active class to clicked preview
+                preview.classList.add('active');
+                
+                // Set the select value
+                const value = preview.getAttribute('data-value');
+                styleSelect.value = value;
+                
+                // Update prompt placeholder
+                if (styleExamples[value]) {
+                    promptInput.placeholder = styleExamples[value];
+                }
+            });
+        });
+
+        // Style examples for prompt suggestions
+        const styleExamples = {
+            realistic: "e.g. 'A photorealistic scene of a mountain landscape at sunrise'",
+            anime: "e.g. 'An anime-style scene with vibrant characters in a magical forest'",
+            cartoon: "e.g. 'A cartoon scene of animals having a picnic in the park'",
+            cinematic: "e.g. 'A cinematic shot of a spaceship landing on an alien planet'",
+            watercolor: "e.g. 'A watercolor painting come to life with soft, flowing colors'",
+            cyberpunk: "e.g. 'A cyberpunk cityscape at night with neon lights and flying cars'"
+        };
+
+        // Update prompt placeholder based on style selection
+        styleSelect.addEventListener('change', function() {
+            if (this.value && styleExamples[this.value]) {
+                promptInput.placeholder = styleExamples[this.value];
+            } else {
+                promptInput.placeholder = "Describe the video you want to create...";
+            }
+        });
+        
+        // Initialize with cinematic style placeholder
+        promptInput.placeholder = styleExamples.cinematic;
 
         // Image Upload Functionality
         uploadArea.addEventListener('click', () => {
@@ -926,7 +1036,7 @@
             
             // Simulate processing with progress updates
             const interval = setInterval(() => {
-                progress += 2;
+                progress += 1;
                 if (progress > 100) progress = 100;
                 
                 progressFill.style.width = `${progress}%`;
@@ -946,7 +1056,7 @@
                     this.innerHTML = originalText;
                     this.disabled = false;
                     
-                    // Show video player
+                    // Hide progress bar and show video player
                     progressContainer.style.display = 'none';
                     
                     // Get the selected style video
@@ -1018,28 +1128,6 @@
         videoPlayer.addEventListener('pause', function() {
             playIcon.className = 'fas fa-play play-icon';
         });
-
-        // Style examples for prompt suggestions
-        const styleExamples = {
-            realistic: "e.g. 'A photorealistic scene of a mountain landscape at sunrise'",
-            anime: "e.g. 'An anime-style scene with vibrant characters in a magical forest'",
-            cartoon: "e.g. 'A cartoon scene of animals having a picnic in the park'",
-            cinematic: "e.g. 'A cinematic shot of a spaceship landing on an alien planet'",
-            watercolor: "e.g. 'A watercolor painting come to life with soft, flowing colors'",
-            cyberpunk: "e.g. 'A cyberpunk cityscape at night with neon lights and flying cars'"
-        };
-
-        // Update prompt placeholder based on style selection
-        styleSelect.addEventListener('change', function() {
-            if (this.value && styleExamples[this.value]) {
-                promptInput.placeholder = styleExamples[this.value];
-            } else {
-                promptInput.placeholder = "Describe the video you want to create...";
-            }
-        });
-        
-        // Initialize with cinematic style placeholder
-        promptInput.placeholder = styleExamples.cinematic;
     </script>
 </body>
 </html>
