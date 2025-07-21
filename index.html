@@ -658,6 +658,49 @@
             object-fit: cover;
         }
 
+        /* Success notification */
+        .success-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .success-notification.show {
+            transform: translateX(0);
+        }
+        
+        .error-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .error-notification.show {
+            transform: translateX(0);
+        }
+
         /* Responsive Design */
         @media (max-width: 900px) {
             .main-content {
@@ -741,6 +784,17 @@
     </style>
 </head>
 <body>
+    <!-- Success and Error Notifications -->
+    <div class="success-notification" id="successNotification">
+        <i class="fas fa-check-circle"></i>
+        <span>Video generated successfully!</span>
+    </div>
+    
+    <div class="error-notification" id="errorNotification">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="errorMessage">Failed to generate video</span>
+    </div>
+    
     <div class="container">
         <!-- Header with Logo and Navbar -->
         <header>
@@ -915,11 +969,10 @@
         const videoPlayer = document.getElementById('videoPlayer');
         const playOverlay = document.getElementById('playOverlay');
         const playIcon = document.getElementById('playIcon');
+        const successNotification = document.getElementById('successNotification');
+        const errorNotification = document.getElementById('errorNotification');
+        const errorMessage = document.getElementById('errorMessage');
         
-        // API configuration
-        const API_KEY = 'key_19cfd45be02535d85035fb93937fc995e5eca5f05d0de985f73632a784601ab49d4e191366f1a1789b059969b0a7bb2efab2f98c83d02f6c96ff1e864477d8f1';
-        const API_ENDPOINT = 'https://api.runwayml.com/v1/video/generate';
-
         // Style examples for prompt suggestions
         const styleExamples = {
             realistic: "e.g. 'A photorealistic scene of a mountain landscape at sunrise'",
@@ -979,7 +1032,7 @@
             if (file && file.type.match('image.*')) {
                 // Check file size
                 if (file.size > 5 * 1024 * 1024) {
-                    alert('File size exceeds 5MB limit. Please choose a smaller file.');
+                    showError('File size exceeds 5MB limit. Please choose a smaller file.');
                     return;
                 }
                 
@@ -999,19 +1052,19 @@
                 
                 reader.readAsDataURL(file);
             } else {
-                alert('Please upload a valid image file (PNG, JPG, GIF)');
+                showError('Please upload a valid image file (PNG, JPG, GIF)');
             }
         }
 
-        // Generate Video Functionality
+        // Generate Video Functionality - Fixed simulation
         generateBtn.addEventListener('click', async function() {
             if (!fileInput.files.length) {
-                alert('Please upload an image first');
+                showError('Please upload an image first');
                 return;
             }
             
             if (!promptInput.value.trim()) {
-                alert('Please enter a prompt description');
+                showError('Please enter a prompt description');
                 return;
             }
             
@@ -1033,43 +1086,12 @@
             progressPercent.textContent = `${progress}%`;
             
             try {
-                // Prepare the image data
-                const file = fileInput.files[0];
-                const base64Image = await readFileAsBase64(file);
-                
                 // Build the prompt
                 const style = styleSelect.value ? ` in ${styleSelect.options[styleSelect.selectedIndex].text} style` : '';
                 const fullPrompt = `${promptInput.value}${style}`;
                 
                 // Update output prompt
                 outputPrompt.textContent = fullPrompt;
-                
-                // Prepare API request
-                const requestBody = {
-                    model: "runway-ai",
-                    prompt: fullPrompt,
-                    image: base64Image,
-                    options: {
-                        aspect_ratio: "16:9",
-                        duration: 10
-                    }
-                };
-                
-                // Call the API
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
-                
-                const data = await response.json();
                 
                 // Simulate processing with progress updates
                 const interval = setInterval(() => {
@@ -1082,10 +1104,10 @@
                     if (progress >= 100) {
                         clearInterval(interval);
                         
-                        // Hide progress bar and show video player
+                        // Hide progress bar
                         progressContainer.style.display = 'none';
                         
-                        // Set the video source (using a placeholder video for demo)
+                        // Set the video source to a placeholder video
                         videoPlayer.src = "https://assets.codepen.io/3364143/sample.mp4";
                         videoPlayer.style.display = 'block';
                         
@@ -1097,11 +1119,14 @@
                         // Reset button
                         this.innerHTML = originalText;
                         this.disabled = false;
+                        
+                        // Show success notification
+                        showSuccess('Video generated successfully!');
                     }
                 }, 450); // 45 seconds total for 100%
             } catch (error) {
                 console.error('Error generating video:', error);
-                alert('Failed to generate video. Please try again.');
+                showError('Failed to generate video. Please try again.');
                 
                 // Reset button
                 this.innerHTML = originalText;
@@ -1113,20 +1138,30 @@
             }
         });
         
-        // Helper function to read file as base64
-        function readFileAsBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+        // Show success notification
+        function showSuccess(message) {
+            successNotification.querySelector('span').textContent = message;
+            successNotification.classList.add('show');
+            
+            setTimeout(() => {
+                successNotification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Show error notification
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorNotification.classList.add('show');
+            
+            setTimeout(() => {
+                errorNotification.classList.remove('show');
+            }, 3000);
         }
         
         // Copy Prompt Functionality
         copyBtn.addEventListener('click', function() {
             if (outputPrompt.textContent.includes('will appear here')) {
-                alert('Generate a prompt first');
+                showError('Generate a prompt first');
                 return;
             }
             
@@ -1140,12 +1175,14 @@
                 this.innerHTML = originalText;
                 this.classList.remove('pulse');
             }, 2000);
+            
+            showSuccess('Prompt copied to clipboard!');
         });
         
         // Try in Sora Functionality
         soraBtn.addEventListener('click', function() {
             if (outputPrompt.textContent.includes('will appear here')) {
-                alert('Generate a prompt first');
+                showError('Generate a prompt first');
                 return;
             }
             
@@ -1153,7 +1190,7 @@
             
             setTimeout(() => {
                 this.innerHTML = '<i class="fas fa-play-circle"></i> Try in Sora';
-                alert('Opening Sora with your generated prompt...');
+                showSuccess('Opening Sora with your generated prompt...');
             }, 1000);
         });
 
