@@ -529,6 +529,64 @@
             display: none;
         }
 
+        .video-placeholder {
+            font-size: 60px;
+            color: rgba(255, 255, 255, 0.1);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        /* Video controls */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 5;
+        }
+
+        .video-preview:hover .video-controls {
+            opacity: 1;
+        }
+
+        .control-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .time-display {
+            font-size: 14px;
+            color: white;
+            font-family: monospace;
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -553,6 +611,17 @@
 
         .pulse {
             animation: pulse 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        .loading-shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, rgba(30, 30, 46, 0.2) 0%, rgba(30, 30, 46, 0.4) 50%, rgba(30, 30, 46, 0.2) 100%);
+            background-size: 1000px 100%;
         }
 
         /* Responsive Design */
@@ -688,7 +757,7 @@
                     </div>
                     <div class="preview-content">
                         <div class="image-preview" id="imagePreview">
-                            <i class="fas fa-image" style="font-size: 60px; color: rgba(255,255,255,0.1);"></i>
+                            <i class="fas fa-image video-placeholder"></i>
                         </div>
                         <div class="preview-info">
                             <p><i class="fas fa-info-circle"></i> Upload an image to see preview</p>
@@ -704,7 +773,17 @@
                     </div>
                     <div class="preview-content">
                         <div class="video-preview" id="videoPreview">
-                            <i class="fas fa-film" id="videoPlaceholder" style="font-size: 60px; color: rgba(255,255,255,0.1);"></i>
+                            <i class="fas fa-film video-placeholder" id="videoPlaceholder"></i>
+                            
+                            <!-- Video Player -->
+                            <video class="video-player" id="videoPlayer" controls>
+                                Your browser does not support the video tag.
+                            </video>
+                            
+                            <!-- Play overlay -->
+                            <div class="play-overlay" id="playOverlay" style="display: none;">
+                                <i class="fas fa-play play-icon" id="playIcon"></i>
+                            </div>
                             
                             <!-- Progress Bar -->
                             <div class="progress-container" id="progressContainer">
@@ -712,17 +791,6 @@
                                     <div class="progress-fill" id="progressFill"></div>
                                 </div>
                                 <p class="progress-text">Processing: <span id="progressPercent">0%</span></p>
-                            </div>
-                            
-                            <!-- Video Player -->
-                            <video class="video-player" id="videoPlayer" controls>
-                                <source src="#" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                            
-                            <!-- Play overlay -->
-                            <div class="play-overlay" id="playOverlay" style="display: none;">
-                                <i class="fas fa-play play-icon" id="playIcon"></i>
                             </div>
                         </div>
                         <div class="preview-info">
@@ -761,6 +829,16 @@
         const videoPlayer = document.getElementById('videoPlayer');
         const playOverlay = document.getElementById('playOverlay');
         const playIcon = document.getElementById('playIcon');
+
+        // Sample videos for each style
+        const sampleVideos = {
+            realistic: "https://assets.codepen.io/3364143/sample.mp4",
+            anime: "https://assets.codepen.io/3364143/sample.mp4",
+            cartoon: "https://assets.codepen.io/3364143/sample.mp4",
+            cinematic: "https://assets.codepen.io/3364143/sample.mp4",
+            watercolor: "https://assets.codepen.io/3364143/sample.mp4",
+            cyberpunk: "https://assets.codepen.io/3364143/sample.mp4"
+        };
 
         // Image Upload Functionality
         uploadArea.addEventListener('click', () => {
@@ -839,6 +917,7 @@
             progressContainer.style.display = 'flex';
             playOverlay.style.display = 'none';
             videoPlayer.style.display = 'none';
+            videoPlayer.pause();
             
             // Reset progress
             let progress = 0;
@@ -847,7 +926,9 @@
             
             // Simulate processing with progress updates
             const interval = setInterval(() => {
-                progress += 1;
+                progress += 2;
+                if (progress > 100) progress = 100;
+                
                 progressFill.style.width = `${progress}%`;
                 progressPercent.textContent = `${progress}%`;
                 
@@ -867,11 +948,19 @@
                     
                     // Show video player
                     progressContainer.style.display = 'none';
-                    videoPlayer.style.display = 'block';
-                    playOverlay.style.display = 'flex';
                     
-                    // Set video source (using a placeholder video for demo)
-                    videoPlayer.src = 'https://assets.codepen.io/3364143/sample.mp4';
+                    // Get the selected style video
+                    const selectedStyle = styleSelect.value || 'cinematic';
+                    const videoSource = sampleVideos[selectedStyle];
+                    
+                    // Set the video source
+                    videoPlayer.src = videoSource;
+                    videoPlayer.style.display = 'block';
+                    
+                    // After a short delay, show the play overlay
+                    setTimeout(() => {
+                        playOverlay.style.display = 'flex';
+                    }, 500);
                 }
             }, 450); // 45 seconds total for 100%
         });
@@ -948,6 +1037,9 @@
                 promptInput.placeholder = "Describe the video you want to create...";
             }
         });
+        
+        // Initialize with cinematic style placeholder
+        promptInput.placeholder = styleExamples.cinematic;
     </script>
 </body>
 </html>
