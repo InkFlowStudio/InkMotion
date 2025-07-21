@@ -704,6 +704,40 @@
                 width: 100%;
             }
         }
+
+        /* New styles for API status */
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-connected {
+            background: var(--success);
+        }
+
+        .status-disconnected {
+            background: var(--accent);
+        }
+
+        .api-key-display {
+            font-family: monospace;
+            font-size: 12px;
+            opacity: 0.7;
+            word-break: break-all;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -768,32 +802,17 @@
                         <option value="watercolor">Watercolor</option>
                         <option value="cyberpunk">Cyberpunk</option>
                     </select>
-                    
-                    <div class="style-previews">
-                        <div class="style-preview" data-value="realistic">
-                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2670" alt="Realistic">
-                        </div>
-                        <div class="style-preview" data-value="anime">
-                            <img src="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2536" alt="Anime">
-                        </div>
-                        <div class="style-preview" data-value="cartoon">
-                            <img src="https://images.unsplash.com/photo-1634149923263-0a1e3c5b7f5a?q=80&w=2670" alt="Cartoon">
-                        </div>
-                        <div class="style-preview active" data-value="cinematic">
-                            <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525" alt="Cinematic">
-                        </div>
-                        <div class="style-preview" data-value="watercolor">
-                            <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=2545" alt="Watercolor">
-                        </div>
-                        <div class="style-preview" data-value="cyberpunk">
-                            <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?q=80&w=2670" alt="Cyberpunk">
-                        </div>
-                    </div>
                 </div>
                 
                 <button class="generate-btn" id="generateBtn">
                     <i class="fas fa-bolt"></i> Generate Video
                 </button>
+                
+                <div class="api-status">
+                    <div class="status-dot status-connected"></div>
+                    <span>Connected to RunwayML API</span>
+                </div>
+                <div class="api-key-display">API Key: key_19cfd45be02535d85035fb93937fc995e5eca5f05d0de985f73632a784601ab49d4e191366f1a1789b059969b0a7bb2efab2f98c83d02f6c96ff1e864477d8f1</div>
                 
                 <div class="output-container" id="outputContainer">
                     <div class="output-header">
@@ -872,7 +891,7 @@
         <!-- Footer -->
         <footer>
             <p>© 2023 InkMotion. All rights reserved. | Transform your images into stunning videos with AI</p>
-            <p style="margin-top: 10px;">Powered by DeepSeek AI & Sora</p>
+            <p style="margin-top: 10px;">Powered by RunwayML & Sora</p>
         </footer>
     </div>
 
@@ -896,31 +915,10 @@
         const videoPlayer = document.getElementById('videoPlayer');
         const playOverlay = document.getElementById('playOverlay');
         const playIcon = document.getElementById('playIcon');
-        const stylePreviews = document.querySelectorAll('.style-preview');
         
         // API configuration
         const API_KEY = 'key_19cfd45be02535d85035fb93937fc995e5eca5f05d0de985f73632a784601ab49d4e191366f1a1789b059969b0a7bb2efab2f98c83d02f6c96ff1e864477d8f1';
-        const API_ENDPOINT = 'https://api.deepseek.com/sora/v1/generate';
-
-        // Style previews selection
-        stylePreviews.forEach(preview => {
-            preview.addEventListener('click', () => {
-                // Remove active class from all previews
-                stylePreviews.forEach(p => p.classList.remove('active'));
-                
-                // Add active class to clicked preview
-                preview.classList.add('active');
-                
-                // Set the select value
-                const value = preview.getAttribute('data-value');
-                styleSelect.value = value;
-                
-                // Update prompt placeholder
-                if (styleExamples[value]) {
-                    promptInput.placeholder = styleExamples[value];
-                }
-            });
-        });
+        const API_ENDPOINT = 'https://api.runwayml.com/v1/video/generate';
 
         // Style examples for prompt suggestions
         const styleExamples = {
@@ -1048,7 +1046,7 @@
                 
                 // Prepare API request
                 const requestBody = {
-                    model: "sora-1.0",
+                    model: "runway-ai",
                     prompt: fullPrompt,
                     image: base64Image,
                     options: {
@@ -1180,4 +1178,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
