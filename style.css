@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImagetoVideo AI | Transform Images to Videos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #6e44ff;
+            --secondary: #5e35b1;
+            --accent: #ff6b6b;
+            --dark: #1a1a2e;
+            --darker: #0d0d1a;
+            --light: #f8f9fa;
+            --gray: #e9ecef;
+            --success: #51cf66;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--light);
+        }
+
+        .logo-icon {
+            color: var(--accent);
+            font-size: 32px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--light);
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 16px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .app-container {
+            background: rgba(30, 30, 46, 0.7);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            color: var(--accent);
+            font-size: 22px;
+        }
+
+        .section-title i {
+            font-size: 26px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-label i {
+            font-size: 20px;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .upload-text {
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .style-select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+        }
+
+        .style-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            background: var(--primary);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .generate-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(110, 68, 255, 0.4);
+        }
+
+        .output-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .output-text {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 120px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .output-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sora-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Preview Section */
+        .preview-section {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .preview-card {
+            background: rgba(30, 30, 46, 0.7);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .preview-title {
+            font-size: 22px;
+            color: var(--accent);
+        }
+
+        .preview-badge {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .preview-content {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .image-preview {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .video-preview {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .play-overlay {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-overlay:hover {
+            transform: scale(1.1);
+            background: rgba(110, 68, 255, 0.5);
+        }
+
+        .play-icon {
+            font-size: 30px;
+            color: white;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            nav ul {
+                display: none;
+            }
+            
+            .logo {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .output-actions {
+                flex-direction: column;
+            }
+            
+            .preview-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .auth-buttons {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Logo and Navbar -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-video logo-icon"></i>
+                <span>ImagetoVideo AI</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-magic"></i> Examples</a></li>
+                    <li><a href="#"><i class="fas fa-pricing"></i> Pricing</a></li>
+                    <li><a href="#"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <button class="btn btn-outline">Log In</button>
+                <button class="btn btn-primary">Sign Up</button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Left Column - Input Form -->
+            <div class="app-container">
+                <h2 class="section-title">
+                    <i class="fas fa-cogs"></i> Create Your Video
+                </h2>
+                
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload Image
+                    </label>
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-file-image upload-icon"></i>
+                        <p class="upload-text">Click to upload or drag and drop</p>
+                        <p class="upload-subtext">PNG, JPG, or GIF (max. 5MB)</p>
+                        <input type="file" class="file-input" id="fileInput" accept="image/*">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-keyboard"></i> Enter Prompt
+                    </label>
+                    <textarea class="text-input" placeholder="Describe the video you want to create..."></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-palette"></i> Choose Style (Optional)
+                    </label>
+                    <select class="style-select">
+                        <option value="">Select a style...</option>
+                        <option value="realistic">Realistic</option>
+                        <option value="anime">Anime</option>
+                        <option value="cartoon">Cartoon</option>
+                        <option value="cinematic">Cinematic</option>
+                        <option value="watercolor">Watercolor</option>
+                        <option value="cyberpunk">Cyberpunk</option>
+                    </select>
+                </div>
+                
+                <button class="generate-btn">
+                    <i class="fas fa-bolt"></i> Generate Video
+                </button>
+                
+                <div class="output-container">
+                    <div class="output-header">
+                        <label class="input-label">
+                            <i class="fas fa-terminal"></i> Output Prompt
+                        </label>
+                    </div>
+                    <div class="output-text">
+                        The generated prompt will appear here after you upload an image and enter your description...
+                    </div>
+                    <div class="output-actions">
+                        <button class="action-btn copy-btn">
+                            <i class="fas fa-copy"></i> Copy Prompt
+                        </button>
+                        <button class="action-btn sora-btn">
+                            <i class="fas fa-play-circle"></i> Try in Sora
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Preview Area -->
+            <div class="preview-section">
+                <div class="preview-card">
+                    <div class="preview-header">
+                        <h3 class="preview-title">Image Preview</h3>
+                        <span class="preview-badge">Input</span>
+                    </div>
+                    <div class="preview-content">
+                        <div class="image-preview">
+                            <i class="fas fa-image" style="font-size: 60px; color: rgba(255,255,255,0.1);"></i>
+                        </div>
+                        <div class="preview-info">
+                            <p><i class="fas fa-info-circle"></i> Upload an image to see preview</p>
+                            <p><i class="fas fa-clock"></i> Supported formats: JPG, PNG, GIF</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="preview-card">
+                    <div class="preview-header">
+                        <h3 class="preview-title">Video Preview</h3>
+                        <span class="preview-badge">Output</span>
+                    </div>
+                    <div class="preview-content">
+                        <div class="video-preview">
+                            <i class="fas fa-film" style="font-size: 60px; color: rgba(255,255,255,0.1);"></i>
+                            <div class="play-overlay">
+                                <i class="fas fa-play play-icon"></i>
+                            </div>
+                        </div>
+                        <div class="preview-info">
+                            <p><i class="fas fa-sync-alt"></i> Processing time: ~45 seconds</p>
+                            <p><i class="fas fa-video"></i> Output: 1080p MP4 video</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer>
+            <p>© 2023 ImagetoVideo AI. All rights reserved. | Transform your images into stunning videos with AI</p>
+            <p style="margin-top: 10px;">Powered by DeepSeek AI & Sora</p>
+        </footer>
+    </div>
+
+    <script>
+        // Upload area interaction
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#6e44ff';
+            uploadArea.style.backgroundColor = 'rgba(110, 68, 255, 0.1)';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            uploadArea.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            uploadArea.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileUpload(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+        
+        function handleFileUpload(file) {
+            if (file && file.type.match('image.*')) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    uploadArea.innerHTML = `
+                        <img src="${e.target.result}" style="max-height: 120px; border-radius: 8px;">
+                        <p style="margin-top: 15px;">${file.name}</p>
+                        <p>${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    `;
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Generate button animation
+        const generateBtn = document.querySelector('.generate-btn');
+        
+        generateBtn.addEventListener('click', function() {
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            // Simulate processing time
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-bolt"></i> Generate Video';
+                
+                // Update output prompt
+                document.querySelector('.output-text').textContent = "A cinematic shot of a futuristic cityscape at dusk, with flying cars and neon lights reflecting on wet streets. The camera glides smoothly between towering skyscrapers as holographic advertisements come to life.";
+                
+                // Simulate video preview
+                document.querySelector('.video-preview').innerHTML = `
+                    <video poster="https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style="width: 100%; height: 100%; object-fit: cover;">
+                    </video>
+                    <div class="play-overlay">
+                        <i class="fas fa-play play-icon"></i>
+                    </div>
+                `;
+                
+                // Add play functionality
+                document.querySelector('.play-overlay').addEventListener('click', function() {
+                    alert('Video playback would start here. In a real implementation, this would play the generated video.');
+                });
+            }, 3000);
+        });
+        
+        // Copy button functionality
+        document.querySelector('.copy-btn').addEventListener('click', function() {
+            const promptText = document.querySelector('.output-text').textContent;
+            navigator.clipboard.writeText(promptText);
+            
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            
+            setTimeout(() => {
+                this.innerHTML = originalText;
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
