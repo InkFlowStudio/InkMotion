@@ -781,6 +781,71 @@
             word-break: break-all;
             margin-top: 5px;
         }
+        
+        /* New: Video generation status */
+        .video-status {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .video-status.error {
+            background: rgba(255, 107, 107, 0.3);
+            color: #ffb3b3;
+        }
+        
+        .video-status.success {
+            background: rgba(81, 207, 102, 0.3);
+            color: #b3ffc6;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* New: Video generation controls */
+        .video-controls-panel {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .video-control-btn {
+            padding: 8px 15px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .video-control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .video-control-btn.primary {
+            background: var(--primary);
+        }
+        
+        .video-control-btn.primary:hover {
+            background: var(--primary-dark);
+        }
     </style>
 </head>
 <body>
@@ -933,6 +998,23 @@
                                 <p class="progress-text">Processing: <span id="progressPercent">0%</span></p>
                             </div>
                         </div>
+                        
+                        <!-- Video Status -->
+                        <div class="video-status" id="videoStatus">
+                            <i class="fas fa-info-circle"></i>
+                            <span>No video generated yet</span>
+                        </div>
+                        
+                        <!-- Video Controls -->
+                        <div class="video-controls-panel" id="videoControls" style="display: none;">
+                            <button class="video-control-btn" id="downloadBtn">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="video-control-btn primary" id="regenerateBtn">
+                                <i class="fas fa-redo"></i> Regenerate
+                            </button>
+                        </div>
+                        
                         <div class="preview-info">
                             <p><i class="fas fa-sync-alt"></i> Processing time: ~45 seconds</p>
                             <p><i class="fas fa-video"></i> Output: 1080p MP4 video</p>
@@ -972,10 +1054,15 @@
         const successNotification = document.getElementById('successNotification');
         const errorNotification = document.getElementById('errorNotification');
         const errorMessage = document.getElementById('errorMessage');
+        const videoStatus = document.getElementById('videoStatus');
+        const videoControls = document.getElementById('videoControls');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const regenerateBtn = document.getElementById('regenerateBtn');
         
         // Variables for processing
         let processingInterval = null;
         let currentProgress = 0;
+        let generatedVideoUrl = null;
         
         // Style examples for prompt suggestions
         const styleExamples = {
@@ -1071,6 +1158,9 @@
             playOverlay.style.display = 'none';
             videoPlaceholder.style.display = 'block';
             progressContainer.style.display = 'none';
+            videoControls.style.display = 'none';
+            videoStatus.innerHTML = '<i class="fas fa-info-circle"></i> <span>No video generated yet</span>';
+            videoStatus.className = 'video-status';
             
             // Reset progress
             currentProgress = 0;
@@ -1098,7 +1188,7 @@
             
             // Show loading state
             const originalText = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            this.innerHTML = '<i class="fas fa-spinner fa-spin spinner"></i> Processing...';
             this.disabled = true;
             
             // Hide placeholder and show progress bar
@@ -1107,6 +1197,11 @@
             playOverlay.style.display = 'none';
             videoPlayer.style.display = 'none';
             videoPlayer.pause();
+            videoControls.style.display = 'none';
+            
+            // Update status
+            videoStatus.innerHTML = '<i class="fas fa-spinner fa-spin spinner"></i> <span>Generating video...</span>';
+            videoStatus.className = 'video-status';
             
             // Reset progress
             currentProgress = 0;
@@ -1145,14 +1240,23 @@
                         // Hide progress bar
                         progressContainer.style.display = 'none';
                         
-                        // Set the video source to a placeholder video
-                        videoPlayer.src = "https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4";
+                        // Set the video source to a working demo video
+                        generatedVideoUrl = "https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4";
+                        videoPlayer.src = generatedVideoUrl;
+                        videoPlayer.load();
                         videoPlayer.style.display = 'block';
                         
                         // After a short delay, show the play overlay
                         setTimeout(() => {
                             playOverlay.style.display = 'flex';
                         }, 500);
+                        
+                        // Show video controls
+                        videoControls.style.display = 'flex';
+                        
+                        // Update status
+                        videoStatus.innerHTML = '<i class="fas fa-check-circle"></i> <span>Video generated successfully!</span>';
+                        videoStatus.className = 'video-status success';
                         
                         // Reset button
                         this.innerHTML = originalText;
@@ -1165,6 +1269,10 @@
             } catch (error) {
                 console.error('Error generating video:', error);
                 showError(error.message || 'Failed to generate video. Please try again.');
+                
+                // Update status
+                videoStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>Error: ${error.message || 'Video generation failed'}</span>`;
+                videoStatus.className = 'video-status error';
                 
                 // Reset button
                 this.innerHTML = originalText;
@@ -1230,7 +1338,7 @@
                 return;
             }
             
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+            this.innerHTML = '<i class="fas fa-spinner fa-spin spinner"></i> Opening...';
             
             setTimeout(() => {
                 this.innerHTML = '<i class="fas fa-play-circle"></i> Try in Sora';
@@ -1257,6 +1365,42 @@
         videoPlayer.addEventListener('pause', function() {
             playIcon.className = 'fas fa-play play-icon';
         });
+        
+        // Download video functionality
+        downloadBtn.addEventListener('click', function() {
+            if (!generatedVideoUrl) {
+                showError('No video available to download');
+                return;
+            }
+            
+            // Create a temporary link
+            const link = document.createElement('a');
+            link.href = generatedVideoUrl;
+            link.download = 'inkmotion-video.mp4';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showSuccess('Video download started!');
+        });
+        
+        // Regenerate video functionality
+        regenerateBtn.addEventListener('click', function() {
+            generateBtn.click();
+        });
+        
+        // Set up video error handling
+        videoPlayer.addEventListener('error', function() {
+            if (videoPlayer.error) {
+                console.error('Video error:', videoPlayer.error);
+                showError('Video playback error: ' + videoPlayer.error.message);
+                videoStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>Playback error: ${videoPlayer.error.message}</span>`;
+                videoStatus.className = 'video-status error';
+            }
+        });
+        
+        // Initialize the page
+        resetVideoPreview();
     </script>
 </body>
-</html>
+    </html>
