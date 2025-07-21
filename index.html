@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ImagetoVideo AI | Transform Images to Videos</title>
+    <title>InkMotion | Transform Images to Videos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -491,6 +491,44 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
+        /* Progress Bar Styles */
+        .progress-container {
+            width: 100%;
+            padding: 15px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -558,14 +596,14 @@
         <!-- Header with Logo and Navbar -->
         <header>
             <div class="logo">
-                <i class="fas fa-video logo-icon"></i>
-                <span>ImagetoVideo AI</span>
+                <i class="fas fa-paint-brush logo-icon"></i>
+                <span>InkMotion</span>
             </div>
             <nav>
                 <ul>
                     <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
                     <li><a href="#"><i class="fas fa-magic"></i> Examples</a></li>
-                    <li><a href="#"><i class="fas fa-pricing"></i> Pricing</a></li>
+                    <li><a href="#"><i class="fas fa-dollar-sign"></i> Pricing</a></li>
                     <li><a href="#"><i class="fas fa-question-circle"></i> FAQ</a></li>
                 </ul>
             </nav>
@@ -580,7 +618,7 @@
             <!-- Left Column - Input Form -->
             <div class="app-container">
                 <h2 class="section-title">
-                    <i class="fas fa-cogs"></i> Create Your Video
+                    <i class="fas fa-wand-magic-sparkles"></i> Create Your Video
                 </h2>
                 
                 <div class="input-group">
@@ -604,14 +642,14 @@
                 
                 <div class="input-group">
                     <label class="input-label">
-                        <i class="fas fa-palette"></i> Choose Style (Optional)
+                        <i class="fas fa-palette"></i> Choose Style
                     </label>
                     <select class="style-select" id="styleSelect">
                         <option value="">Select a style...</option>
                         <option value="realistic">Realistic</option>
                         <option value="anime">Anime</option>
                         <option value="cartoon">Cartoon</option>
-                        <option value="cinematic">Cinematic</option>
+                        <option value="cinematic" selected>Cinematic</option>
                         <option value="watercolor">Watercolor</option>
                         <option value="cyberpunk">Cyberpunk</option>
                     </select>
@@ -666,9 +704,25 @@
                     </div>
                     <div class="preview-content">
                         <div class="video-preview" id="videoPreview">
-                            <i class="fas fa-film" style="font-size: 60px; color: rgba(255,255,255,0.1);"></i>
-                            <div class="play-overlay" id="playOverlay">
-                                <i class="fas fa-play play-icon"></i>
+                            <i class="fas fa-film" id="videoPlaceholder" style="font-size: 60px; color: rgba(255,255,255,0.1);"></i>
+                            
+                            <!-- Progress Bar -->
+                            <div class="progress-container" id="progressContainer">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <p class="progress-text">Processing: <span id="progressPercent">0%</span></p>
+                            </div>
+                            
+                            <!-- Video Player -->
+                            <video class="video-player" id="videoPlayer" controls>
+                                <source src="#" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            
+                            <!-- Play overlay -->
+                            <div class="play-overlay" id="playOverlay" style="display: none;">
+                                <i class="fas fa-play play-icon" id="playIcon"></i>
                             </div>
                         </div>
                         <div class="preview-info">
@@ -682,7 +736,7 @@
         
         <!-- Footer -->
         <footer>
-            <p>© 2023 ImagetoVideo AI. All rights reserved. | Transform your images into stunning videos with AI</p>
+            <p>© 2023 InkMotion. All rights reserved. | Transform your images into stunning videos with AI</p>
             <p style="margin-top: 10px;">Powered by DeepSeek AI & Sora</p>
         </footer>
     </div>
@@ -700,7 +754,13 @@
         const copyBtn = document.getElementById('copyBtn');
         const soraBtn = document.getElementById('soraBtn');
         const videoPreview = document.getElementById('videoPreview');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercent = document.getElementById('progressPercent');
+        const videoPlayer = document.getElementById('videoPlayer');
         const playOverlay = document.getElementById('playOverlay');
+        const playIcon = document.getElementById('playIcon');
 
         // Image Upload Functionality
         uploadArea.addEventListener('click', () => {
@@ -774,43 +834,46 @@
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             this.disabled = true;
             
-            // Simulate processing time
-            setTimeout(() => {
-                // Generate output prompt
-                const style = styleSelect.value ? ` in ${styleSelect.options[styleSelect.selectedIndex].text} style` : '';
-                outputPrompt.textContent = `A ${styleSelect.value || 'cinematic'} video: ${promptInput.value}${style}.`;
+            // Show progress bar
+            videoPlaceholder.style.display = 'none';
+            progressContainer.style.display = 'flex';
+            playOverlay.style.display = 'none';
+            videoPlayer.style.display = 'none';
+            
+            // Reset progress
+            let progress = 0;
+            progressFill.style.width = `${progress}%`;
+            progressPercent.textContent = `${progress}%`;
+            
+            // Simulate processing with progress updates
+            const interval = setInterval(() => {
+                progress += 1;
+                progressFill.style.width = `${progress}%`;
+                progressPercent.textContent = `${progress}%`;
                 
-                // Show output container with animation
-                outputContainer.style.display = 'block';
-                
-                // Reset button
-                this.innerHTML = originalText;
-                this.disabled = false;
-                
-                // Update video preview
-                videoPreview.innerHTML = `
-                    <video id="demoVideo" poster="https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style="width: 100%; height: 100%; object-fit: cover;">
-                        <source src="#" type="video/mp4">
-                    </video>
-                    <div class="play-overlay">
-                        <i class="fas fa-play play-icon"></i>
-                    </div>
-                `;
-                
-                // Add play functionality
-                document.querySelector('.play-overlay').addEventListener('click', function() {
-                    const video = document.getElementById('demoVideo');
-                    if (video) {
-                        if (video.paused) {
-                            video.play();
-                            this.innerHTML = '<i class="fas fa-pause play-icon"></i>';
-                        } else {
-                            video.pause();
-                            this.innerHTML = '<i class="fas fa-play play-icon"></i>';
-                        }
-                    }
-                });
-            }, 3000);
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    // Generate output prompt
+                    const style = styleSelect.value ? ` in ${styleSelect.options[styleSelect.selectedIndex].text} style` : '';
+                    outputPrompt.textContent = `A ${styleSelect.value || 'cinematic'} video: ${promptInput.value}${style}.`;
+                    
+                    // Show output container with animation
+                    outputContainer.style.display = 'block';
+                    
+                    // Reset button
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                    
+                    // Show video player
+                    progressContainer.style.display = 'none';
+                    videoPlayer.style.display = 'block';
+                    playOverlay.style.display = 'flex';
+                    
+                    // Set video source (using a placeholder video for demo)
+                    videoPlayer.src = 'https://assets.codepen.io/3364143/sample.mp4';
+                }
+            }, 450); // 45 seconds total for 100%
         });
         
         // Copy Prompt Functionality
@@ -845,6 +908,26 @@
                 this.innerHTML = '<i class="fas fa-play-circle"></i> Try in Sora';
                 alert('Opening Sora with your generated prompt...');
             }, 1000);
+        });
+
+        // Play/Pause video when clicking the overlay
+        playOverlay.addEventListener('click', function() {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+                playIcon.className = 'fas fa-pause play-icon';
+            } else {
+                videoPlayer.pause();
+                playIcon.className = 'fas fa-play play-icon';
+            }
+        });
+
+        // Update play icon when video is paused/played
+        videoPlayer.addEventListener('play', function() {
+            playIcon.className = 'fas fa-pause play-icon';
+        });
+
+        videoPlayer.addEventListener('pause', function() {
+            playIcon.className = 'fas fa-play play-icon';
         });
 
         // Style examples for prompt suggestions
