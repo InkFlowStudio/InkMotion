@@ -898,16 +898,6 @@
         const playIcon = document.getElementById('playIcon');
         const stylePreviews = document.querySelectorAll('.style-preview');
 
-        // Sample videos for each style
-        const sampleVideos = {
-            realistic: "https://assets.codepen.io/3364143/sample.mp4",
-            anime: "https://assets.codepen.io/3364143/sample.mp4",
-            cartoon: "https://assets.codepen.io/3364143/sample.mp4",
-            cinematic: "https://assets.codepen.io/3364143/sample.mp4",
-            watercolor: "https://assets.codepen.io/3364143/sample.mp4",
-            cyberpunk: "https://assets.codepen.io/3364143/sample.mp4"
-        };
-
         // Style previews selection
         stylePreviews.forEach(preview => {
             preview.addEventListener('click', () => {
@@ -1061,10 +1051,9 @@
                     
                     // Get the selected style video
                     const selectedStyle = styleSelect.value || 'cinematic';
-                    const videoSource = sampleVideos[selectedStyle];
                     
-                    // Set the video source
-                    videoPlayer.src = videoSource;
+                    // Set the video source (using a placeholder video for demo)
+                    videoPlayer.src = "https://assets.codepen.io/3364143/sample.mp4";
                     videoPlayer.style.display = 'block';
                     
                     // After a short delay, show the play overlay
