@@ -846,6 +846,115 @@
         .video-control-btn.primary:hover {
             background: var(--primary-dark);
         }
+        
+        /* New: Image style transfer preview */
+        .style-transfer-preview {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .style-transfer-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .style-preview-box {
+            flex: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .style-preview-box img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        /* New: History panel */
+        .history-panel {
+            display: none;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .history-items {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .history-item {
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 16/9;
+            cursor: pointer;
+        }
+        
+        .history-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .history-item-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px;
+            font-size: 10px;
+            text-align: center;
+        }
+        
+        /* New: Advanced options */
+        .advanced-options {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -871,8 +980,8 @@
                 <ul>
                     <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
                     <li><a href="#"><i class="fas fa-magic"></i> Examples</a></li>
-                    <li><a href="#"><i class="fas fa-dollar-sign"></i> Pricing</a></li>
-                    <li><a href="#"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                    <li><a href="#"><i class="fas fa-history"></i> History</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
                 </ul>
             </nav>
             <div class="auth-buttons">
@@ -896,7 +1005,7 @@
                     <div class="upload-area" id="uploadArea">
                         <i class="fas fa-file-image upload-icon"></i>
                         <p class="upload-text">Click to upload or drag and drop</p>
-                        <p class="upload-subtext">PNG, JPG, or GIF (max. 5MB)</p>
+                        <p class="upload-subtext">PNG, JPG, or GIF (max. 10MB)</p>
                         <input type="file" class="file-input" id="fileInput" accept="image/*">
                     </div>
                 </div>
@@ -920,7 +1029,38 @@
                         <option value="cinematic" selected>Cinematic</option>
                         <option value="watercolor">Watercolor</option>
                         <option value="cyberpunk">Cyberpunk</option>
+                        <option value="oil-painting">Oil Painting</option>
+                        <option value="sketch">Sketch</option>
                     </select>
+                </div>
+                
+                <div class="input-group">
+                    <a href="#" id="toggleAdvanced">Show Advanced Options <i class="fas fa-chevron-down"></i></a>
+                    <div class="advanced-options" id="advancedOptions">
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Motion Intensity</span>
+                                <span id="motionValue">Medium</span>
+                            </div>
+                            <input type="range" min="1" max="5" value="3" class="slider" id="motionSlider">
+                        </div>
+                        
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Video Duration</span>
+                                <span id="durationValue">5 seconds</span>
+                            </div>
+                            <input type="range" min="2" max="10" value="5" class="slider" id="durationSlider">
+                        </div>
+                        
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Style Strength</span>
+                                <span id="styleValue">70%</span>
+                            </div>
+                            <input type="range" min="20" max="100" value="70" class="slider" id="styleSlider">
+                        </div>
+                    </div>
                 </div>
                 
                 <button class="generate-btn" id="generateBtn">
@@ -951,6 +1091,18 @@
                         </button>
                     </div>
                 </div>
+                
+                <div class="history-panel" id="historyPanel">
+                    <div class="history-header">
+                        <label class="input-label">
+                            <i class="fas fa-history"></i> Recent Creations
+                        </label>
+                        <a href="#">View All</a>
+                    </div>
+                    <div class="history-items">
+                        <!-- History items will be added dynamically -->
+                    </div>
+                </div>
             </div>
             
             <!-- Right Column - Preview Area -->
@@ -964,9 +1116,25 @@
                         <div class="image-preview" id="imagePreview">
                             <i class="fas fa-image video-placeholder"></i>
                         </div>
+                        <div class="style-transfer-preview" id="styleTransferPreview">
+                            <label class="input-label">
+                                <i class="fas fa-paint-brush"></i> Style Preview
+                            </label>
+                            <div class="style-transfer-container">
+                                <div class="style-preview-box">
+                                    <span>Original</span>
+                                </div>
+                                <div class="style-preview-box">
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                                <div class="style-preview-box">
+                                    <span>Styled</span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="preview-info">
                             <p><i class="fas fa-info-circle"></i> Upload an image to see preview</p>
-                            <p><i class="fas fa-clock"></i> Supported formats: JPG, PNG, GIF</p>
+                            <p><i class="fas fa-clock"></i> Supported formats: JPG, PNG, GIF, WEBP</p>
                         </div>
                     </div>
                 </div>
@@ -1010,6 +1178,9 @@
                             <button class="video-control-btn" id="downloadBtn">
                                 <i class="fas fa-download"></i> Download
                             </button>
+                            <button class="video-control-btn" id="shareBtn">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
                             <button class="video-control-btn primary" id="regenerateBtn">
                                 <i class="fas fa-redo"></i> Regenerate
                             </button>
@@ -1018,6 +1189,7 @@
                         <div class="preview-info">
                             <p><i class="fas fa-sync-alt"></i> Processing time: ~45 seconds</p>
                             <p><i class="fas fa-video"></i> Output: 1080p MP4 video</p>
+                            <p><i class="fas fa-hdd"></i> Storage: 5 videos saved automatically</p>
                         </div>
                     </div>
                 </div>
@@ -1058,11 +1230,36 @@
         const videoControls = document.getElementById('videoControls');
         const downloadBtn = document.getElementById('downloadBtn');
         const regenerateBtn = document.getElementById('regenerateBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const advancedOptions = document.getElementById('advancedOptions');
+        const toggleAdvanced = document.getElementById('toggleAdvanced');
+        const motionSlider = document.getElementById('motionSlider');
+        const durationSlider = document.getElementById('durationSlider');
+        const styleSlider = document.getElementById('styleSlider');
+        const motionValue = document.getElementById('motionValue');
+        const durationValue = document.getElementById('durationValue');
+        const styleValue = document.getElementById('styleValue');
+        const styleTransferPreview = document.getElementById('styleTransferPreview');
+        const historyPanel = document.getElementById('historyPanel');
         
         // Variables for processing
         let processingInterval = null;
         let currentProgress = 0;
         let generatedVideoUrl = null;
+        let uploadedImageUrl = null;
+        let historyItems = [];
+        
+        // Demo videos for different styles
+        const demoVideos = {
+            realistic: "https://assets.mixkit.co/videos/preview/mixkit-waves-in-the-water-1164-large.mp4",
+            anime: "https://assets.mixkit.co/videos/preview/mixkit-clouds-and-blue-sky-1171-large.mp4",
+            cartoon: "https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4",
+            cinematic: "https://assets.mixkit.co/videos/preview/mixkit-aerial-shot-of-a-coastal-road-1221-large.mp4",
+            watercolor: "https://assets.mixkit.co/videos/preview/mixkit-waterfall-in-forest-2213-large.mp4",
+            cyberpunk: "https://assets.mixkit.co/videos/preview/mixkit-night-traffic-on-a-wet-road-3453-large.mp4",
+            "oil-painting": "https://assets.mixkit.co/videos/preview/mixkit-sunset-over-a-lake-1226-large.mp4",
+            sketch: "https://assets.mixkit.co/videos/preview/mixkit-waves-crashing-on-the-shore-1227-large.mp4"
+        };
         
         // Style examples for prompt suggestions
         const styleExamples = {
@@ -1071,74 +1268,129 @@
             cartoon: "e.g. 'A cartoon scene of animals having a picnic in the park'",
             cinematic: "e.g. 'A cinematic shot of a spaceship landing on an alien planet'",
             watercolor: "e.g. 'A watercolor painting come to life with soft, flowing colors'",
-            cyberpunk: "e.g. 'A cyberpunk cityscape at night with neon lights and flying cars'"
+            cyberpunk: "e.g. 'A cyberpunk cityscape at night with neon lights and flying cars'",
+            "oil-painting": "e.g. 'An oil painting of a historic battle scene in motion'",
+            sketch: "e.g. 'A sketch animation of a busy city street coming to life'"
         };
-
-        // Update prompt placeholder based on style selection
-        styleSelect.addEventListener('change', function() {
-            if (this.value && styleExamples[this.value]) {
-                promptInput.placeholder = styleExamples[this.value];
-            } else {
-                promptInput.placeholder = "Describe the video you want to create...";
+        
+        // Initialize the app
+        function initApp() {
+            // Load history from localStorage
+            const savedHistory = localStorage.getItem('inkmotionHistory');
+            if (savedHistory) {
+                historyItems = JSON.parse(savedHistory);
+                renderHistory();
             }
-        });
-        
-        // Initialize with cinematic style placeholder
-        promptInput.placeholder = styleExamples.cinematic;
-
-        // Image Upload Functionality
-        uploadArea.addEventListener('click', () => {
-            fileInput.click();
-        });
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = '#6e44ff';
-            uploadArea.style.backgroundColor = 'rgba(110, 68, 255, 0.1)';
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            uploadArea.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            uploadArea.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
             
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                handleFileUpload(e.dataTransfer.files[0]);
-            }
-        });
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Update prompt placeholder based on style selection
+            updatePromptPlaceholder();
+            
+            // Initialize advanced options
+            updateSliderValues();
+        }
         
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) {
-                handleFileUpload(e.target.files[0]);
-            }
-        });
+        // Set up event listeners
+        function setupEventListeners() {
+            // Style selection
+            styleSelect.addEventListener('change', updatePromptPlaceholder);
+            
+            // Image upload
+            uploadArea.addEventListener('click', () => fileInput.click());
+            setupDragAndDrop();
+            fileInput.addEventListener('change', handleFileUpload);
+            
+            // Generate button
+            generateBtn.addEventListener('click', generateVideo);
+            
+            // Copy prompt
+            copyBtn.addEventListener('click', copyPrompt);
+            
+            // Try in Sora
+            soraBtn.addEventListener('click', tryInSora);
+            
+            // Play/pause video
+            playOverlay.addEventListener('click', togglePlayPause);
+            videoPlayer.addEventListener('play', updatePlayIcon);
+            videoPlayer.addEventListener('pause', updatePlayIcon);
+            videoPlayer.addEventListener('ended', handleVideoEnded);
+            
+            // Download video
+            downloadBtn.addEventListener('click', downloadVideo);
+            
+            // Regenerate video
+            regenerateBtn.addEventListener('click', () => generateBtn.click());
+            
+            // Share video
+            shareBtn.addEventListener('click', shareVideo);
+            
+            // Toggle advanced options
+            toggleAdvanced.addEventListener('click', toggleAdvancedOptions);
+            
+            // Sliders
+            motionSlider.addEventListener('input', () => updateSliderValue(motionSlider, motionValue, ["Subtle", "Low", "Medium", "High", "Extreme"]));
+            durationSlider.addEventListener('input', () => updateSliderValue(durationSlider, durationValue, ["2 seconds", "3 seconds", "4 seconds", "5 seconds", "6 seconds", "7 seconds", "8 seconds", "9 seconds", "10 seconds"]));
+            styleSlider.addEventListener('input', () => updateSliderValue(styleSlider, styleValue, null, "%"));
+        }
         
-        function handleFileUpload(file) {
+        // Set up drag and drop
+        function setupDragAndDrop() {
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#6e44ff';
+                uploadArea.style.backgroundColor = 'rgba(110, 68, 255, 0.1)';
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                uploadArea.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                uploadArea.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileUpload(e);
+                }
+            });
+        }
+        
+        // Handle file upload
+        function handleFileUpload(e) {
+            const file = e.target.files ? e.target.files[0] : e.dataTransfer.files[0];
+            
             if (file && file.type.match('image.*')) {
                 // Check file size
-                if (file.size > 5 * 1024 * 1024) {
-                    showError('File size exceeds 5MB limit. Please choose a smaller file.');
+                if (file.size > 10 * 1024 * 1024) {
+                    showError('File size exceeds 10MB limit. Please choose a smaller file.');
                     return;
                 }
                 
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
+                    uploadedImageUrl = e.target.result;
+                    
                     // Update upload area
                     uploadArea.innerHTML = `
-                        <img src="${e.target.result}" style="max-height: 120px; border-radius: 8px;">
+                        <img src="${uploadedImageUrl}" style="max-height: 120px; border-radius: 8px;">
                         <p style="margin-top: 15px;">${file.name}</p>
                         <p>${(file.size / 1024 / 1024).toFixed(2)} MB</p>
                     `;
                     
                     // Update image preview
-                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded Image">`;
+                    imagePreview.innerHTML = `<img src="${uploadedImageUrl}" alt="Uploaded Image">`;
+                    
+                    // Show style transfer preview
+                    styleTransferPreview.style.display = 'block';
+                    const styleBoxes = document.querySelectorAll('.style-preview-box');
+                    styleBoxes[0].innerHTML = `<img src="${uploadedImageUrl}" alt="Original">`;
+                    styleBoxes[2].innerHTML = `<img src="${uploadedImageUrl}" alt="Styled" style="filter: sepia(100%) saturate(300%) brightness(70%) hue-rotate(180deg);">`;
                     
                     // Reset video preview
                     resetVideoPreview();
@@ -1146,10 +1398,11 @@
                 
                 reader.readAsDataURL(file);
             } else {
-                showError('Please upload a valid image file (PNG, JPG, GIF)');
+                showError('Please upload a valid image file (PNG, JPG, GIF, WEBP)');
             }
         }
         
+        // Reset video preview
         function resetVideoPreview() {
             // Hide video player and show placeholder
             videoPlayer.style.display = 'none';
@@ -1173,9 +1426,19 @@
                 processingInterval = null;
             }
         }
-
-        // Generate Video Functionality
-        generateBtn.addEventListener('click', async function() {
+        
+        // Update prompt placeholder based on style
+        function updatePromptPlaceholder() {
+            const style = styleSelect.value;
+            if (style && styleExamples[style]) {
+                promptInput.placeholder = styleExamples[style];
+            } else {
+                promptInput.placeholder = "Describe the video you want to create...";
+            }
+        }
+        
+        // Generate video
+        async function generateVideo() {
             if (!fileInput.files.length) {
                 showError('Please upload an image first');
                 return;
@@ -1187,9 +1450,9 @@
             }
             
             // Show loading state
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin spinner"></i> Processing...';
-            this.disabled = true;
+            const originalText = generateBtn.innerHTML;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin spinner"></i> Processing...';
+            generateBtn.disabled = true;
             
             // Hide placeholder and show progress bar
             videoPlaceholder.style.display = 'none';
@@ -1240,8 +1503,11 @@
                         // Hide progress bar
                         progressContainer.style.display = 'none';
                         
-                        // Set the video source to a working demo video
-                        generatedVideoUrl = "https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4";
+                        // Get demo video based on selected style
+                        const selectedStyle = styleSelect.value || 'cinematic';
+                        generatedVideoUrl = demoVideos[selectedStyle];
+                        
+                        // Set the video source
                         videoPlayer.src = generatedVideoUrl;
                         videoPlayer.load();
                         videoPlayer.style.display = 'block';
@@ -1259,8 +1525,11 @@
                         videoStatus.className = 'video-status success';
                         
                         // Reset button
-                        this.innerHTML = originalText;
-                        this.disabled = false;
+                        generateBtn.innerHTML = originalText;
+                        generateBtn.disabled = false;
+                        
+                        // Save to history
+                        saveToHistory();
                         
                         // Show success notification
                         showSuccess('Video generated successfully!');
@@ -1275,8 +1544,8 @@
                 videoStatus.className = 'video-status error';
                 
                 // Reset button
-                this.innerHTML = originalText;
-                this.disabled = false;
+                generateBtn.innerHTML = originalText;
+                generateBtn.disabled = false;
                 
                 // Hide progress bar and show placeholder
                 progressContainer.style.display = 'none';
@@ -1288,7 +1557,210 @@
                     processingInterval = null;
                 }
             }
-        });
+        }
+        
+        // Save generated video to history
+        function saveToHistory() {
+            const historyItem = {
+                id: Date.now(),
+                imageUrl: uploadedImageUrl,
+                videoUrl: generatedVideoUrl,
+                prompt: promptInput.value,
+                style: styleSelect.value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Add to beginning of history
+            historyItems.unshift(historyItem);
+            
+            // Keep only the last 5 items
+            if (historyItems.length > 5) {
+                historyItems.pop();
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('inkmotionHistory', JSON.stringify(historyItems));
+            
+            // Render history
+            renderHistory();
+        }
+        
+        // Render history items
+        function renderHistory() {
+            const historyContainer = historyPanel.querySelector('.history-items');
+            historyContainer.innerHTML = '';
+            
+            if (historyItems.length > 0) {
+                historyPanel.style.display = 'block';
+                
+                historyItems.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <img src="${item.imageUrl}" alt="History item">
+                        <div class="history-item-overlay">${item.style}</div>
+                    `;
+                    
+                    historyItem.addEventListener('click', () => {
+                        // Load the history item
+                        uploadedImageUrl = item.imageUrl;
+                        generatedVideoUrl = item.videoUrl;
+                        promptInput.value = item.prompt;
+                        styleSelect.value = item.style;
+                        
+                        // Update UI
+                        imagePreview.innerHTML = `<img src="${item.imageUrl}" alt="Uploaded Image">`;
+                        outputPrompt.textContent = item.prompt;
+                        
+                        // Show the video
+                        videoPlayer.src = item.videoUrl;
+                        videoPlayer.load();
+                        videoPlayer.style.display = 'block';
+                        playOverlay.style.display = 'flex';
+                        videoControls.style.display = 'flex';
+                        videoPlaceholder.style.display = 'none';
+                        videoStatus.innerHTML = '<i class="fas fa-history"></i> <span>Loaded from history</span>';
+                        videoStatus.className = 'video-status success';
+                    });
+                    
+                    historyContainer.appendChild(historyItem);
+                });
+            } else {
+                historyPanel.style.display = 'none';
+            }
+        }
+        
+        // Toggle play/pause
+        function togglePlayPause() {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+                playOverlay.style.display = 'none';
+            } else {
+                videoPlayer.pause();
+            }
+        }
+        
+        // Update play icon
+        function updatePlayIcon() {
+            playIcon.className = videoPlayer.paused ? 'fas fa-play play-icon' : 'fas fa-pause play-icon';
+        }
+        
+        // Handle video ended
+        function handleVideoEnded() {
+            playOverlay.style.display = 'flex';
+        }
+        
+        // Copy prompt to clipboard
+        function copyPrompt() {
+            if (outputPrompt.textContent.includes('will appear here')) {
+                showError('Generate a prompt first');
+                return;
+            }
+            
+            navigator.clipboard.writeText(outputPrompt.textContent);
+            
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            copyBtn.classList.add('pulse');
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+                copyBtn.classList.remove('pulse');
+            }, 2000);
+            
+            showSuccess('Prompt copied to clipboard!');
+        }
+        
+        // Try in Sora
+        function tryInSora() {
+            if (outputPrompt.textContent.includes('will appear here')) {
+                showError('Generate a prompt first');
+                return;
+            }
+            
+            soraBtn.innerHTML = '<i class="fas fa-spinner fa-spin spinner"></i> Opening...';
+            
+            setTimeout(() => {
+                soraBtn.innerHTML = '<i class="fas fa-play-circle"></i> Try in Sora';
+                showSuccess('Opening Sora with your generated prompt...');
+                window.open('https://openai.com/sora', '_blank');
+            }, 1000);
+        }
+        
+        // Download video
+        function downloadVideo() {
+            if (!generatedVideoUrl) {
+                showError('No video available to download');
+                return;
+            }
+            
+            // Create a temporary link
+            const link = document.createElement('a');
+            link.href = generatedVideoUrl;
+            link.download = 'inkmotion-video.mp4';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showSuccess('Video download started!');
+        }
+        
+        // Share video
+        function shareVideo() {
+            if (!generatedVideoUrl) {
+                showError('No video available to share');
+                return;
+            }
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My InkMotion Creation',
+                    text: 'Check out this AI-generated video I created with InkMotion!',
+                    url: window.location.href
+                })
+                .then(() => showSuccess('Video shared successfully!'))
+                .catch(error => showError('Sharing failed: ' + error.message));
+            } else {
+                // Fallback for browsers without share API
+                navigator.clipboard.writeText(window.location.href);
+                showSuccess('Link copied to clipboard!');
+            }
+        }
+        
+        // Toggle advanced options
+        function toggleAdvancedOptions(e) {
+            e.preventDefault();
+            const isOpen = advancedOptions.style.display === 'block';
+            
+            if (isOpen) {
+                advancedOptions.style.display = 'none';
+                toggleAdvanced.innerHTML = 'Show Advanced Options <i class="fas fa-chevron-down"></i>';
+            } else {
+                advancedOptions.style.display = 'block';
+                toggleAdvanced.innerHTML = 'Hide Advanced Options <i class="fas fa-chevron-up"></i>';
+            }
+        }
+        
+        // Update slider values
+        function updateSliderValue(slider, display, labels = null, suffix = "") {
+            const value = slider.value;
+            let displayValue;
+            
+            if (labels) {
+                displayValue = labels[value - 1];
+            } else {
+                displayValue = value + suffix;
+            }
+            
+            display.textContent = displayValue;
+        }
+        
+        // Initialize slider values
+        function updateSliderValues() {
+            updateSliderValue(motionSlider, motionValue, ["Subtle", "Low", "Medium", "High", "Extreme"]);
+            updateSliderValue(durationSlider, durationValue, ["2 seconds", "3 seconds", "4 seconds", "5 seconds", "6 seconds", "7 seconds", "8 seconds", "9 seconds", "10 seconds"]);
+            updateSliderValue(styleSlider, styleValue, null, "%");
+        }
         
         // Show success notification
         function showSuccess(message) {
@@ -1310,97 +1782,8 @@
             }, 3000);
         }
         
-        // Copy Prompt Functionality
-        copyBtn.addEventListener('click', function() {
-            if (outputPrompt.textContent.includes('will appear here')) {
-                showError('Generate a prompt first');
-                return;
-            }
-            
-            navigator.clipboard.writeText(outputPrompt.textContent);
-            
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-check"></i> Copied!';
-            this.classList.add('pulse');
-            
-            setTimeout(() => {
-                this.innerHTML = originalText;
-                this.classList.remove('pulse');
-            }, 2000);
-            
-            showSuccess('Prompt copied to clipboard!');
-        });
-        
-        // Try in Sora Functionality
-        soraBtn.addEventListener('click', function() {
-            if (outputPrompt.textContent.includes('will appear here')) {
-                showError('Generate a prompt first');
-                return;
-            }
-            
-            this.innerHTML = '<i class="fas fa-spinner fa-spin spinner"></i> Opening...';
-            
-            setTimeout(() => {
-                this.innerHTML = '<i class="fas fa-play-circle"></i> Try in Sora';
-                showSuccess('Opening Sora with your generated prompt...');
-            }, 1000);
-        });
-
-        // Play/Pause video when clicking the overlay
-        playOverlay.addEventListener('click', function() {
-            if (videoPlayer.paused) {
-                videoPlayer.play();
-                playIcon.className = 'fas fa-pause play-icon';
-            } else {
-                videoPlayer.pause();
-                playIcon.className = 'fas fa-play play-icon';
-            }
-        });
-
-        // Update play icon when video is paused/played
-        videoPlayer.addEventListener('play', function() {
-            playIcon.className = 'fas fa-pause play-icon';
-        });
-
-        videoPlayer.addEventListener('pause', function() {
-            playIcon.className = 'fas fa-play play-icon';
-        });
-        
-        // Download video functionality
-        downloadBtn.addEventListener('click', function() {
-            if (!generatedVideoUrl) {
-                showError('No video available to download');
-                return;
-            }
-            
-            // Create a temporary link
-            const link = document.createElement('a');
-            link.href = generatedVideoUrl;
-            link.download = 'inkmotion-video.mp4';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showSuccess('Video download started!');
-        });
-        
-        // Regenerate video functionality
-        regenerateBtn.addEventListener('click', function() {
-            generateBtn.click();
-        });
-        
-        // Set up video error handling
-        videoPlayer.addEventListener('error', function() {
-            if (videoPlayer.error) {
-                console.error('Video error:', videoPlayer.error);
-                showError('Video playback error: ' + videoPlayer.error.message);
-                videoStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>Playback error: ${videoPlayer.error.message}</span>`;
-                videoStatus.className = 'video-status error';
-            }
-        });
-        
-        // Initialize the page
-        resetVideoPreview();
+        // Initialize the app
+        window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
-    </html>
+    </html> qq
