@@ -973,6 +973,10 @@
         const errorNotification = document.getElementById('errorNotification');
         const errorMessage = document.getElementById('errorMessage');
         
+        // Variables for processing
+        let processingInterval = null;
+        let currentProgress = 0;
+        
         // Style examples for prompt suggestions
         const styleExamples = {
             realistic: "e.g. 'A photorealistic scene of a mountain landscape at sunrise'",
@@ -1048,6 +1052,9 @@
                     
                     // Update image preview
                     imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded Image">`;
+                    
+                    // Reset video preview
+                    resetVideoPreview();
                 };
                 
                 reader.readAsDataURL(file);
@@ -1055,8 +1062,29 @@
                 showError('Please upload a valid image file (PNG, JPG, GIF)');
             }
         }
+        
+        function resetVideoPreview() {
+            // Hide video player and show placeholder
+            videoPlayer.style.display = 'none';
+            videoPlayer.src = '';
+            videoPlayer.pause();
+            playOverlay.style.display = 'none';
+            videoPlaceholder.style.display = 'block';
+            progressContainer.style.display = 'none';
+            
+            // Reset progress
+            currentProgress = 0;
+            progressFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            
+            // Clear any existing intervals
+            if (processingInterval) {
+                clearInterval(processingInterval);
+                processingInterval = null;
+            }
+        }
 
-        // Generate Video Functionality - Fixed simulation
+        // Generate Video Functionality
         generateBtn.addEventListener('click', async function() {
             if (!fileInput.files.length) {
                 showError('Please upload an image first');
@@ -1073,7 +1101,7 @@
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             this.disabled = true;
             
-            // Show progress bar
+            // Hide placeholder and show progress bar
             videoPlaceholder.style.display = 'none';
             progressContainer.style.display = 'flex';
             playOverlay.style.display = 'none';
@@ -1081,9 +1109,9 @@
             videoPlayer.pause();
             
             // Reset progress
-            let progress = 0;
-            progressFill.style.width = `${progress}%`;
-            progressPercent.textContent = `${progress}%`;
+            currentProgress = 0;
+            progressFill.style.width = `${currentProgress}%`;
+            progressPercent.textContent = `${currentProgress}%`;
             
             try {
                 // Build the prompt
@@ -1094,21 +1122,31 @@
                 outputPrompt.textContent = fullPrompt;
                 
                 // Simulate processing with progress updates
-                const interval = setInterval(() => {
-                    progress += 1;
-                    if (progress > 100) progress = 100;
+                processingInterval = setInterval(() => {
+                    currentProgress += 1;
+                    if (currentProgress > 100) currentProgress = 100;
                     
-                    progressFill.style.width = `${progress}%`;
-                    progressPercent.textContent = `${progress}%`;
+                    progressFill.style.width = `${currentProgress}%`;
+                    progressPercent.textContent = `${currentProgress}%`;
                     
-                    if (progress >= 100) {
-                        clearInterval(interval);
+                    // Simulate occasional processing errors
+                    if (currentProgress === 30 && Math.random() > 0.9) {
+                        throw new Error('API connection timeout');
+                    }
+                    
+                    if (currentProgress === 70 && Math.random() > 0.9) {
+                        throw new Error('Video rendering failed');
+                    }
+                    
+                    if (currentProgress >= 100) {
+                        clearInterval(processingInterval);
+                        processingInterval = null;
                         
                         // Hide progress bar
                         progressContainer.style.display = 'none';
                         
                         // Set the video source to a placeholder video
-                        videoPlayer.src = "https://assets.codepen.io/3364143/sample.mp4";
+                        videoPlayer.src = "https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4";
                         videoPlayer.style.display = 'block';
                         
                         // After a short delay, show the play overlay
@@ -1126,15 +1164,21 @@
                 }, 450); // 45 seconds total for 100%
             } catch (error) {
                 console.error('Error generating video:', error);
-                showError('Failed to generate video. Please try again.');
+                showError(error.message || 'Failed to generate video. Please try again.');
                 
                 // Reset button
                 this.innerHTML = originalText;
                 this.disabled = false;
                 
-                // Hide progress bar
+                // Hide progress bar and show placeholder
                 progressContainer.style.display = 'none';
                 videoPlaceholder.style.display = 'block';
+                
+                // Clear interval
+                if (processingInterval) {
+                    clearInterval(processingInterval);
+                    processingInterval = null;
+                }
             }
         });
         
@@ -1215,4 +1259,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
