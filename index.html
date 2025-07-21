@@ -1,1 +1,35 @@
-d
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InkMotion | AI Image to Video</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>InkMotion</h1>
+      <p>Transform your image into an AI-generated video</p>
+    </header><main>
+  <form id="generateForm">
+    <label for="imageInput">Upload Image</label>
+    <input type="file" id="imageInput" accept="image/*" required />
+
+    <label for="promptInput">Describe your animation prompt</label>
+    <input type="text" id="promptInput" placeholder="e.g. A dog running through a forest..." required />
+
+    <button type="submit">Generate Video</button>
+  </form>
+
+  <div id="previewSection" class="hidden">
+    <h2>Generated Video</h2>
+    <video id="outputVideo" controls></video>
+  </div>
+</main>
+
+<footer>
+  <p>&copy; 2025 InkFlow Studio</p>
+</footer>
+
+  </div>  <script src="script.js"></script></body>
+</html>
