@@ -15,13 +15,16 @@
 
         :root {
             --primary: #6e44ff;
-            --secondary: #5e35b1;
+            --primary-dark: #5e35b1;
             --accent: #ff6b6b;
+            --accent-dark: #e05555;
             --dark: #1a1a2e;
             --darker: #0d0d1a;
             --light: #f8f9fa;
             --gray: #e9ecef;
             --success: #51cf66;
+            --card-bg: rgba(30, 30, 46, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -29,11 +32,26 @@
             color: var(--light);
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(110, 68, 255, 0.1) 0%, transparent 20%),
+                        radial-gradient(circle at 90% 80%, rgba(255, 107, 107, 0.1) 0%, transparent 20%);
+            z-index: -1;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
         }
 
         /* Header Styles */
@@ -73,10 +91,26 @@
             padding: 8px 12px;
             border-radius: 6px;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
         }
 
         .auth-buttons {
@@ -110,6 +144,10 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
         /* Main Content */
         .main-content {
             display: grid;
@@ -119,12 +157,17 @@
         }
 
         .app-container {
-            background: rgba(30, 30, 46, 0.7);
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s ease;
+        }
+
+        .app-container:hover {
+            transform: translateY(-5px);
         }
 
         .section-title {
@@ -200,6 +243,7 @@
         .text-input:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(110, 68, 255, 0.3);
         }
 
         .style-select {
@@ -220,6 +264,7 @@
         .style-select:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(110, 68, 255, 0.3);
         }
 
         .generate-btn {
@@ -234,10 +279,28 @@
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generate-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20px;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(25deg);
+            transition: all 0.6s;
+        }
+
+        .generate-btn:hover::after {
+            left: 120%;
         }
 
         .generate-btn:hover {
-            background: var(--secondary);
+            background: var(--primary-dark);
             transform: translateY(-3px);
             box-shadow: 0 5px 20px rgba(110, 68, 255, 0.4);
         }
@@ -247,6 +310,7 @@
             border-radius: 12px;
             padding: 20px;
             margin-top: 20px;
+            animation: fadeIn 0.5s ease;
         }
 
         .output-header {
@@ -263,6 +327,9 @@
             min-height: 120px;
             font-size: 16px;
             line-height: 1.6;
+            font-family: monospace;
+            overflow-y: auto;
+            max-height: 200px;
         }
 
         .output-actions {
@@ -290,10 +357,18 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         .sora-btn {
             background: var(--accent);
             color: white;
             border: none;
+        }
+
+        .sora-btn:hover {
+            background: var(--accent-dark);
         }
 
         .action-btn:hover {
@@ -309,12 +384,17 @@
         }
 
         .preview-card {
-            background: rgba(30, 30, 46, 0.7);
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s ease;
+        }
+
+        .preview-card:hover {
+            transform: translateY(-5px);
         }
 
         .preview-header {
@@ -352,6 +432,7 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            position: relative;
         }
 
         .image-preview img {
@@ -383,6 +464,7 @@
             backdrop-filter: blur(5px);
             cursor: pointer;
             transition: all 0.3s ease;
+            z-index: 10;
         }
 
         .play-overlay:hover {
@@ -395,6 +477,20 @@
             color: white;
         }
 
+        .preview-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .preview-info p {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -403,6 +499,22 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 14px;
             color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
         }
 
         /* Responsive Design */
@@ -433,6 +545,10 @@
             
             .auth-buttons {
                 display: none;
+            }
+
+            .app-container, .preview-card {
+                padding: 20px;
             }
         }
     </style>
@@ -505,7 +621,7 @@
                     <i class="fas fa-bolt"></i> Generate Video
                 </button>
                 
-                <div class="output-container">
+                <div class="output-container" id="outputContainer">
                     <div class="output-header">
                         <label class="input-label">
                             <i class="fas fa-terminal"></i> Output Prompt
@@ -579,6 +695,7 @@
         const promptInput = document.getElementById('promptInput');
         const styleSelect = document.getElementById('styleSelect');
         const generateBtn = document.getElementById('generateBtn');
+        const outputContainer = document.getElementById('outputContainer');
         const outputPrompt = document.getElementById('outputPrompt');
         const copyBtn = document.getElementById('copyBtn');
         const soraBtn = document.getElementById('soraBtn');
@@ -663,6 +780,9 @@
                 const style = styleSelect.value ? ` in ${styleSelect.options[styleSelect.selectedIndex].text} style` : '';
                 outputPrompt.textContent = `A ${styleSelect.value || 'cinematic'} video: ${promptInput.value}${style}.`;
                 
+                // Show output container with animation
+                outputContainer.style.display = 'block';
+                
                 // Reset button
                 this.innerHTML = originalText;
                 this.disabled = false;
@@ -680,12 +800,14 @@
                 // Add play functionality
                 document.querySelector('.play-overlay').addEventListener('click', function() {
                     const video = document.getElementById('demoVideo');
-                    if (video.paused) {
-                        video.play();
-                        this.innerHTML = '<i class="fas fa-pause play-icon"></i>';
-                    } else {
-                        video.pause();
-                        this.innerHTML = '<i class="fas fa-play play-icon"></i>';
+                    if (video) {
+                        if (video.paused) {
+                            video.play();
+                            this.innerHTML = '<i class="fas fa-pause play-icon"></i>';
+                        } else {
+                            video.pause();
+                            this.innerHTML = '<i class="fas fa-play play-icon"></i>';
+                        }
                     }
                 });
             }, 3000);
@@ -702,9 +824,11 @@
             
             const originalText = this.innerHTML;
             this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            this.classList.add('pulse');
             
             setTimeout(() => {
                 this.innerHTML = originalText;
+                this.classList.remove('pulse');
             }, 2000);
         });
         
@@ -715,8 +839,31 @@
                 return;
             }
             
-            alert('Opening Sora with your generated prompt...');
-            // In a real implementation, this would open Sora with the prompt
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-play-circle"></i> Try in Sora';
+                alert('Opening Sora with your generated prompt...');
+            }, 1000);
+        });
+
+        // Style examples for prompt suggestions
+        const styleExamples = {
+            realistic: "e.g. 'A photorealistic scene of a mountain landscape at sunrise'",
+            anime: "e.g. 'An anime-style scene with vibrant characters in a magical forest'",
+            cartoon: "e.g. 'A cartoon scene of animals having a picnic in the park'",
+            cinematic: "e.g. 'A cinematic shot of a spaceship landing on an alien planet'",
+            watercolor: "e.g. 'A watercolor painting come to life with soft, flowing colors'",
+            cyberpunk: "e.g. 'A cyberpunk cityscape at night with neon lights and flying cars'"
+        };
+
+        // Update prompt placeholder based on style selection
+        styleSelect.addEventListener('change', function() {
+            if (this.value && styleExamples[this.value]) {
+                promptInput.placeholder = styleExamples[this.value];
+            } else {
+                promptInput.placeholder = "Describe the video you want to create...";
+            }
         });
     </script>
 </body>
