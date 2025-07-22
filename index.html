@@ -616,6 +616,11 @@
             color: #b3ffc6;
         }
         
+        .video-status.processing {
+            background: rgba(110, 68, 255, 0.3);
+            color: #c8b3ff;
+        }
+        
         /* Loading spinner */
         .spinner {
             animation: spin 1s linear infinite;
@@ -680,6 +685,37 @@
             background: rgba(255, 107, 107, 0.3);
         }
         
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .success-notification {
+            background: rgba(81, 207, 102, 0.9);
+            color: white;
+            border-left: 4px solid #2f9e44;
+        }
+        
+        .error-notification {
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+            border-left: 4px solid #e03131;
+        }
+        
         /* Responsive Design */
         @media (max-width: 900px) {
             .main-content {
@@ -713,17 +749,23 @@
             .app-container, .preview-card {
                 padding: 20px;
             }
+            
+            .notification {
+                width: 90%;
+                left: 5%;
+                right: auto;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Success and Error Notifications -->
-    <div class="success-notification" id="successNotification">
+    <div class="notification success-notification" id="successNotification">
         <i class="fas fa-check-circle"></i>
         <span>Video generated successfully!</span>
     </div>
     
-    <div class="error-notification" id="errorNotification">
+    <div class="notification error-notification" id="errorNotification">
         <i class="fas fa-exclamation-circle"></i>
         <span id="errorMessage">Failed to generate video</span>
     </div>
@@ -889,6 +931,7 @@
                         <div class="preview-info">
                             <p><i class="fas fa-sync-alt"></i> Processing time: ~3 minutes</p>
                             <p><i class="fas fa-video"></i> Output: 5-second MP4 video</p>
+                            <p><i class="fas fa-exclamation-triangle"></i> Note: This demo uses a simulation of the RunwayML API</p>
                         </div>
                     </div>
                 </div>
@@ -935,6 +978,8 @@
         let processingInterval = null;
         let currentProgress = 0;
         let generatedVideoUrl = null;
+        let uploadedImage = null;
+        let generatedVideoId = null;
         
         // Style examples for prompt suggestions
         const styleExamples = {
@@ -1012,6 +1057,9 @@
                     // Update image preview
                     imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded Image">`;
                     
+                    // Save uploaded image
+                    uploadedImage = e.target.result;
+                    
                     // Reset video preview
                     resetVideoPreview();
                 };
@@ -1046,9 +1094,29 @@
             }
         }
 
+        // Show success notification
+        function showSuccess(message) {
+            successNotification.querySelector('span').textContent = message;
+            successNotification.classList.add('show');
+            
+            setTimeout(() => {
+                successNotification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Show error notification
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorNotification.classList.add('show');
+            
+            setTimeout(() => {
+                errorNotification.classList.remove('show');
+            }, 3000);
+        }
+        
         // Generate Video Functionality
         generateBtn.addEventListener('click', async function() {
-            if (!fileInput.files.length) {
+            if (!uploadedImage) {
                 showError('Please upload an image first');
                 return;
             }
@@ -1073,7 +1141,7 @@
             
             // Update status
             videoStatus.innerHTML = '<i class="fas fa-spinner fa-spin spinner"></i> <span>Generating video...</span>';
-            videoStatus.className = 'video-status';
+            videoStatus.className = 'video-status processing';
             
             // Reset progress
             currentProgress = 0;
@@ -1088,59 +1156,36 @@
                 // Update output prompt
                 outputPrompt.textContent = fullPrompt;
                 
-                // Simulate processing with progress updates (3 minutes = 180 seconds)
-                const totalSteps = 180; // 180 steps for 180 seconds
-                const intervalTime = 1000; // Update every second
+                // Simulate API call to RunwayML
+                const videoResult = await generateVideoWithAPI(uploadedImage, fullPrompt);
                 
-                processingInterval = setInterval(() => {
-                    currentProgress += 1;
-                    const percent = Math.min(100, Math.round((currentProgress / totalSteps) * 100));
-                    
-                    progressFill.style.width = `${percent}%`;
-                    progressPercent.textContent = `${percent}%`;
-                    
-                    // Simulate occasional processing errors
-                    if (currentProgress === 60 && Math.random() > 0.9) {
-                        throw new Error('API connection timeout');
-                    }
-                    
-                    if (currentProgress === 120 && Math.random() > 0.9) {
-                        throw new Error('Video rendering failed');
-                    }
-                    
-                    if (currentProgress >= totalSteps) {
-                        clearInterval(processingInterval);
-                        processingInterval = null;
-                        
-                        // Hide progress bar
-                        progressContainer.style.display = 'none';
-                        
-                        // Set the video source to a working demo video
-                        generatedVideoUrl = "https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4";
-                        videoPlayer.src = generatedVideoUrl;
-                        videoPlayer.load();
-                        videoPlayer.style.display = 'block';
-                        
-                        // After a short delay, show the play overlay
-                        setTimeout(() => {
-                            playOverlay.style.display = 'flex';
-                        }, 500);
-                        
-                        // Show video controls
-                        videoControls.style.display = 'flex';
-                        
-                        // Update status
-                        videoStatus.innerHTML = '<i class="fas fa-check-circle"></i> <span>Video generated successfully!</span>';
-                        videoStatus.className = 'video-status success';
-                        
-                        // Reset button
-                        this.innerHTML = originalText;
-                        this.disabled = false;
-                        
-                        // Show success notification
-                        showSuccess('Video generated successfully!');
-                    }
-                }, intervalTime);
+                // Hide progress bar
+                progressContainer.style.display = 'none';
+                
+                // Set the video source
+                generatedVideoUrl = videoResult.videoUrl;
+                videoPlayer.src = generatedVideoUrl;
+                videoPlayer.load();
+                videoPlayer.style.display = 'block';
+                
+                // After a short delay, show the play overlay
+                setTimeout(() => {
+                    playOverlay.style.display = 'flex';
+                }, 500);
+                
+                // Show video controls
+                videoControls.style.display = 'flex';
+                
+                // Update status
+                videoStatus.innerHTML = '<i class="fas fa-check-circle"></i> <span>Video generated successfully!</span>';
+                videoStatus.className = 'video-status success';
+                
+                // Reset button
+                this.innerHTML = originalText;
+                this.disabled = false;
+                
+                // Show success notification
+                showSuccess('Video generated successfully!');
             } catch (error) {
                 console.error('Error generating video:', error);
                 showError(error.message || 'Failed to generate video. Please try again.');
@@ -1165,24 +1210,52 @@
             }
         });
         
-        // Show success notification
-        function showSuccess(message) {
-            successNotification.querySelector('span').textContent = message;
-            successNotification.classList.add('show');
-            
-            setTimeout(() => {
-                successNotification.classList.remove('show');
-            }, 3000);
-        }
-        
-        // Show error notification
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorNotification.classList.add('show');
-            
-            setTimeout(() => {
-                errorNotification.classList.remove('show');
-            }, 3000);
+        // Simulate API call to RunwayML
+        async function generateVideoWithAPI(imageData, prompt) {
+            // This would be replaced with an actual API call in production
+            return new Promise((resolve, reject) => {
+                // Start progress simulation
+                processingInterval = setInterval(() => {
+                    currentProgress += 1;
+                    const percent = Math.min(100, Math.round((currentProgress / 180) * 100));
+                    
+                    progressFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                    
+                    // Simulate occasional processing errors
+                    if (currentProgress === 60 && Math.random() > 0.9) {
+                        clearInterval(processingInterval);
+                        reject(new Error('API connection timeout'));
+                    }
+                    
+                    if (currentProgress === 120 && Math.random() > 0.9) {
+                        clearInterval(processingInterval);
+                        reject(new Error('Video rendering failed'));
+                    }
+                    
+                    if (currentProgress >= 180) {
+                        clearInterval(processingInterval);
+                        
+                        // Simulate successful video generation
+                        const sampleVideos = [
+                            "https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4",
+                            "https://assets.mixkit.co/videos/preview/mixkit-a-girl-blowing-a-bubble-gum-at-an-amusement-park-1226-large.mp4",
+                            "https://assets.mixkit.co/videos/preview/mixkit-countryside-meadow-4075-large.mp4",
+                            "https://assets.mixkit.co/videos/preview/mixkit-sunset-over-a-lake-4076-large.mp4",
+                            "https://assets.mixkit.co/videos/preview/mixkit-man-walking-under-a-tunnel-4082-large.mp4"
+                        ];
+                        
+                        // Pick a random video
+                        const randomIndex = Math.floor(Math.random() * sampleVideos.length);
+                        resolve({
+                            videoUrl: sampleVideos[randomIndex],
+                            prompt: prompt,
+                            duration: 5,
+                            resolution: "1280x720"
+                        });
+                    }
+                }, 1000);
+            });
         }
         
         // Copy Prompt Functionality
@@ -1218,6 +1291,8 @@
             setTimeout(() => {
                 this.innerHTML = '<i class="fas fa-play-circle"></i> Try in Sora';
                 showSuccess('Opening Sora with your generated prompt...');
+                // This would open Sora with the prompt in a real implementation
+                window.open(`https://sora.com/?prompt=${encodeURIComponent(outputPrompt.textContent)}`, '_blank');
             }, 1000);
         });
 
@@ -1294,4 +1369,4 @@
         resetVideoPreview();
     </script>
 </body>
-</html>
+                            </html>
